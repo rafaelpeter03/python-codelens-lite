@@ -44,7 +44,7 @@ export async function applyFilters(
                     lineText = locDoc.lineAt(loc.range.start.line).text;
                 }
                 isLocImport = /^\s*(import|from)\s/.test(lineText);
-            } catch (err) {
+            } catch {
                 // Ignore if we can't open
             }
         }

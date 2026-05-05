@@ -110,7 +110,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
                     sym.selectionRange.start
                 ) || [];
             }
-        } catch (e) {
+        } catch {
             // Usually happens if python provider is not fully booted yet
             locations = [];
         }
