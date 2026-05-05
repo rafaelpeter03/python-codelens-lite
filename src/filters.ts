@@ -7,9 +7,14 @@ export async function applyFilters(
     locations: vscode.Location[],
     symbol: EligibleSymbol,
     config: ResolvedConfig,
-    document: vscode.TextDocument
+    document: vscode.TextDocument,
+    docCache: Map<string, vscode.TextDocument> = new Map()
 ): Promise<vscode.Location[]> {
     const validLocations: vscode.Location[] = [];
+
+    if (!docCache.has(document.uri.toString())) {
+        docCache.set(document.uri.toString(), document);
+    }
 
     for (const loc of locations) {
         // Filter definitions
@@ -30,19 +35,17 @@ export async function applyFilters(
         }
 
         let isLocImport = false;
-        
+
         // Filter occurrences inside import lines
         if (config.references.filterImports || symbol.kind === 'import') {
-            // Check if loc is an import by reading its line
             try {
-                // If it's the same document, we can read directly
-                let lineText = '';
-                if (loc.uri.toString() === document.uri.toString()) {
-                    lineText = document.lineAt(loc.range.start.line).text;
-                } else {
-                    const locDoc = await vscode.workspace.openTextDocument(loc.uri);
-                    lineText = locDoc.lineAt(loc.range.start.line).text;
+                const key = loc.uri.toString();
+                let locDoc = docCache.get(key);
+                if (!locDoc) {
+                    locDoc = await vscode.workspace.openTextDocument(loc.uri);
+                    docCache.set(key, locDoc);
                 }
+                const lineText = locDoc.lineAt(loc.range.start.line).text;
                 isLocImport = /^\s*(import|from)\s/.test(lineText);
             } catch {
                 // Ignore if we can't open

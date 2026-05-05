@@ -4,7 +4,6 @@
   "icon": "icon.png",
   "description": "Lightweight, configurable CodeLens for Python (references, implementations, scoped imports).",
   "version": "0.1.0",
-  "publisher": "rafaelptr",
   "categories": [
     "Programming Languages",
     "Other"
@@ -17,6 +16,19 @@
   "activationEvents": [
     "onLanguage:python"
   ],
+  "bugs": {
+    "url": "https://github.com/rafaelpeter03/python-codelens-lite/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rafaelpeter03/python-codelens-lite"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Rafael Peter",
+    "url": "https://github.com/rafaelpeter03"
+  },
+  "publisher": "rafaelptr",
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [

@@ -15,7 +15,7 @@
 - **Click action** — open an inline peek view or the full references panel.
 - **Per-resource configuration** — different settings per workspace folder or file.
 - **Performance guards** — configurable debounce delay and file-size limit.
-- **Localized UI** — settings descriptions and commands are shown in **English** or **Brazilian Portuguese** automatically based on your VS Code display language.
+- **Localized UI** — settings descriptions and command titles are shown in **English** or **Brazilian Portuguese** automatically based on your VS Code display language.
 
 ---
 
@@ -111,7 +111,7 @@ All settings support `resource` scope (per-folder or per-file overrides via `.vs
 The extension automatically adapts to your VS Code display language:
 
 - **English** (`en`) — default.
-- **Brazilian Portuguese** (`pt-br`) — settings descriptions, command titles, and lens labels (`referência`, `implementação`, …) are shown in Portuguese when VS Code is set to `pt-BR`.
+- **Brazilian Portuguese** (`pt-br`) — settings descriptions and command titles are shown in Portuguese when VS Code is set to `pt-BR`.
 
 To change your VS Code display language: `Configure Display Language` in the Command Palette.
 
@@ -171,6 +171,12 @@ npm install       # install dev dependencies
 npm run watch     # compile + watch
 # Press F5 in VS Code to launch an Extension Development Host
 ```
+
+---
+
+## Bugs reports & Features requests
+
+You can submit a bug report or a feature suggestion via [GitHub Issue Tracker](https://github.com/rafaelpeter03/python-codelens-lite/issues).
 
 ---
 

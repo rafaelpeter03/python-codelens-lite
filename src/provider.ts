@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getConfig } from './config';
 import { getEligibleSymbols, EligibleSymbol } from './symbols';
 import { applyFilters } from './filters';
+import { isExcluded } from './pathMatcher';
 
 export class PythonCodeLensProvider implements vscode.CodeLensProvider {
     private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
@@ -30,13 +31,9 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             return [];
         }
 
-        // Apply exclusionary glob rules
-        for (const pattern of config.exclude) {
-            const relPattern = new vscode.RelativePattern(vscode.workspace.getWorkspaceFolder(document.uri) || document.uri, pattern);
-            const matches = await vscode.workspace.findFiles(relPattern, null, 1);
-            if (matches.some(m => m.toString() === document.uri.toString())) {
-                return [];
-            }
+        // Apply exclusionary glob rules (local matching — no workspace I/O)
+        if (isExcluded(document.uri, config.exclude)) {
+            return [];
         }
 
         const eligibleSymbols = await getEligibleSymbols(document, config);
@@ -79,6 +76,8 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         if (!document) { return null; }
 
         let locations: vscode.Location[] = [];
+        const docCache = new Map<string, vscode.TextDocument>();
+        docCache.set(document.uri.toString(), document);
 
         try {
             if (sym.kind === 'class-impl') {
@@ -89,13 +88,13 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
                 ) || [];
                 for (const loc of allRefs) {
                     try {
-                        let lineText = '';
-                        if (loc.uri.toString() === document.uri.toString()) {
-                            lineText = document.lineAt(loc.range.start.line).text;
-                        } else {
-                            const locDoc = await vscode.workspace.openTextDocument(loc.uri);
-                            lineText = locDoc.lineAt(loc.range.start.line).text;
+                        const key = loc.uri.toString();
+                        let locDoc = docCache.get(key);
+                        if (!locDoc) {
+                            locDoc = await vscode.workspace.openTextDocument(loc.uri);
+                            docCache.set(key, locDoc);
                         }
+                        const lineText = locDoc.lineAt(loc.range.start.line).text;
                         if (/^\s*class\s+\w+\s*\(/.test(lineText)) {
                             locations.push(loc);
                         }
@@ -117,7 +116,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
 
         if (token.isCancellationRequested) { return null; }
 
-        const filteredLocations = await applyFilters(locations, sym, config, document);
+        const filteredLocations = await applyFilters(locations, sym, config, document, docCache);
         const count = filteredLocations.length;
 
         if (count < config.references.minCount || (count === 0 && !config.references.showZero)) {

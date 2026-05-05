@@ -3,7 +3,7 @@ import { PythonCodeLensProvider } from './provider';
 import { invalidateConfigCache, getConfig } from './config';
 import { invalidateClassificationCache } from './classifier';
 
-let debouncer: NodeJS.Timeout | undefined;
+const debouncers = new Map<string, NodeJS.Timeout>();
 
 export function activate(context: vscode.ExtensionContext) {
     const provider = new PythonCodeLensProvider();
@@ -47,14 +47,30 @@ export function activate(context: vscode.ExtensionContext) {
             if (e.document.languageId !== 'python') {
                 return;
             }
-            
+
+            const key = e.document.uri.toString();
             const config = getConfig(e.document.uri);
-            if (debouncer) {
-                clearTimeout(debouncer);
+            const existing = debouncers.get(key);
+            if (existing) {
+                clearTimeout(existing);
             }
-            debouncer = setTimeout(() => {
+            const timer = setTimeout(() => {
+                debouncers.delete(key);
                 provider.refresh();
             }, config.performance.debounceMs);
+            debouncers.set(key, timer);
+        })
+    );
+
+    // Clean up debouncers when documents close
+    context.subscriptions.push(
+        vscode.workspace.onDidCloseTextDocument((doc) => {
+            const key = doc.uri.toString();
+            const timer = debouncers.get(key);
+            if (timer) {
+                clearTimeout(timer);
+                debouncers.delete(key);
+            }
         })
     );
 
@@ -68,7 +84,8 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-    if (debouncer) {
-        clearTimeout(debouncer);
+    for (const timer of debouncers.values()) {
+        clearTimeout(timer);
     }
+    debouncers.clear();
 }
