@@ -1,0 +1,178 @@
+{
+  "name": "python-codelens-lite",
+  "displayName": "Python CodeLens Lite",
+  "description": "Lightweight, configurable CodeLens for Python (references, implementations, scoped imports).",
+  "version": "0.1.0",
+  "publisher": "rafaelptr",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "python",
+    "codelens",
+    "references"
+  ],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pythonCodeLensLite.toggle",
+        "title": "Python CodeLens Lite: Toggle CodeLens"
+      },
+      {
+        "command": "pythonCodeLensLite.refresh",
+        "title": "Python CodeLens Lite: Refresh Lenses"
+      }
+    ],
+    "configuration": {
+      "title": "Python CodeLens Lite",
+      "properties": {
+        "pythonCodeLensLite.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable all CodeLens features provided by this extension.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.classes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens for 'class' definitions.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.methods": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens for methods (functions inside classes).",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.functions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show CodeLens for top-level functions.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.moduleVariables": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show CodeLens for top-level variables and constants.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.imports.project": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show CodeLens for imported modules that reside within the current workspace.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.imports.venv": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show CodeLens for modules imported from virtual environments (site-packages/dist-packages).",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.imports.stdlib": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show CodeLens for standard library imports.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.targets.imports.global": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show CodeLens for imports that cannot be securely classified into project, venv, or stdlib.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.references.filterImports": {
+          "type": "boolean",
+          "default": true,
+          "description": "Exclude occurrences located inside 'import' or 'from' statements from the total count and peek view.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.references.filterDefinitions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Exclude the underlying definition's location from the reference count.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.references.filterSelf": {
+          "type": "boolean",
+          "default": false,
+          "description": "Exclude references located inside the definition's own scope.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.references.minCount": {
+          "type": "number",
+          "default": 0,
+          "description": "Hide the lens if the count (after filtering) is less than this value.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.references.showZero": {
+          "type": "boolean",
+          "default": true,
+          "description": "If false, lenses corresponding to exactly zero references will be hidden.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.lenses.showImplementations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show an additional 'N implementations' lens specifically for Python classes.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.clickAction": {
+          "type": "string",
+          "enum": ["peek", "reveal"],
+          "default": "peek",
+          "description": "Behavior when clicking the CodeLens. 'peek' opens an inline peek view; 'reveal' opens the references panel.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.performance.debounceMs": {
+          "type": "number",
+          "default": 250,
+          "description": "Delay in milliseconds to wait before updating CodeLenses after typing.",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.performance.maxFileSizeKB": {
+          "type": "number",
+          "default": 512,
+          "description": "Skip emitting CodeLens in Python files exceeding this size (in KB).",
+          "scope": "resource"
+        },
+        "pythonCodeLensLite.exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "**/.venv/**",
+            "**/venv/**",
+            "**/site-packages/**",
+            "**/__pycache__/**"
+          ],
+          "description": "Glob patterns indicating files where CodeLens should skip calculation.",
+          "scope": "resource"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile -- --production",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vscode/vsce": "^2.19.0",
+    "esbuild": "^0.18.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
