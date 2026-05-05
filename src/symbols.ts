@@ -3,7 +3,7 @@ import { ResolvedConfig } from './config';
 import { isLineAnImport } from './importDetector';
 
 export interface EligibleSymbol {
-    kind: 'class' | 'method' | 'function' | 'moduleVar' | 'import';
+    kind: 'class' | 'method' | 'function' | 'moduleVar' | 'import' | 'class-impl';
     name: string;
     range: vscode.Range;
     selectionRange: vscode.Range;
@@ -27,20 +27,18 @@ export async function getEligibleSymbols(
 
     function traverse(syms: vscode.DocumentSymbol[], isTopLevel: boolean, inClass: boolean) {
         for (const sym of syms) {
-            // Imports (detected via line text)
-            if (isTopLevel && (sym.kind === vscode.SymbolKind.Module || sym.kind === vscode.SymbolKind.Variable)) {
-                if (isLineAnImport(document, sym.range.start.line)) {
-                    if (config.targets.imports.global || config.targets.imports.project || config.targets.imports.stdlib || config.targets.imports.venv) {
-                        eligibleSymbols.push({
-                            kind: 'import',
-                            name: sym.name,
-                            range: sym.range,
-                            selectionRange: sym.selectionRange,
-                            symbol: sym
-                        });
-                    }
-                    continue; // Do not traverse children of imports
+            // Imports (detected via line text) — catches all symbol kinds on import lines
+            if (isTopLevel && isLineAnImport(document, sym.range.start.line)) {
+                if (config.targets.imports.global || config.targets.imports.project || config.targets.imports.stdlib || config.targets.imports.venv) {
+                    eligibleSymbols.push({
+                        kind: 'import',
+                        name: sym.name,
+                        range: sym.range,
+                        selectionRange: sym.selectionRange,
+                        symbol: sym
+                    });
                 }
+                continue; // Do not traverse children of imports
             }
 
             // Classes

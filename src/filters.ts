@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { EligibleSymbol } from './symbols';
 import { ResolvedConfig } from './config';
-import { isLineAnImport } from './importDetector';
 import { classifyLocation } from './classifier';
 
 export async function applyFilters(

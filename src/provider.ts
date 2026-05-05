@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ResolvedConfig, getConfig } from './config';
+import { getConfig } from './config';
 import { getEligibleSymbols, EligibleSymbol } from './symbols';
 import { applyFilters } from './filters';
 
@@ -54,7 +54,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             // Implementations lens (only for classes)
             if (config.lenses.showImplementations && sym.kind === 'class') {
                 const implLens = new vscode.CodeLens(sym.range);
-                this.symbolCache.set(implLens, { ...sym, kind: 'class-impl' as any });
+                this.symbolCache.set(implLens, { ...sym, kind: 'class-impl' });
                 lenses.push(implLens);
             }
         }
@@ -81,12 +81,28 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         let locations: vscode.Location[] = [];
 
         try {
-            if ((sym.kind as any) === 'class-impl') {
-                locations = await vscode.commands.executeCommand<vscode.Location[]>(
-                    'vscode.executeImplementationProvider',
+            if (sym.kind === 'class-impl') {
+                const allRefs = await vscode.commands.executeCommand<vscode.Location[]>(
+                    'vscode.executeReferenceProvider',
                     uri,
                     sym.selectionRange.start
                 ) || [];
+                for (const loc of allRefs) {
+                    try {
+                        let lineText = '';
+                        if (loc.uri.toString() === document.uri.toString()) {
+                            lineText = document.lineAt(loc.range.start.line).text;
+                        } else {
+                            const locDoc = await vscode.workspace.openTextDocument(loc.uri);
+                            lineText = locDoc.lineAt(loc.range.start.line).text;
+                        }
+                        if (/^\s*class\s+\w+\s*\(/.test(lineText)) {
+                            locations.push(loc);
+                        }
+                    } catch {
+                        // ignore unreadable files
+                    }
+                }
             } else {
                 locations = await vscode.commands.executeCommand<vscode.Location[]>(
                     'vscode.executeReferenceProvider',
@@ -110,7 +126,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             return codeLens;
         }
 
-        const title = (sym.kind as any) === 'class-impl'
+        const title = sym.kind === 'class-impl'
             ? `${count} ${count === 1 ? 'implementation' : 'implementations'}`
             : `${count} ${count === 1 ? 'reference' : 'references'}`;
 
