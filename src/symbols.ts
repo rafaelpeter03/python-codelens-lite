@@ -52,8 +52,9 @@ export async function getEligibleSymbols(
                 });
             }
 
-            // Methods (Functions in Class)
-            if (sym.kind === vscode.SymbolKind.Function && inClass && config.targets.methods) {
+            // Methods (Functions/Methods in Class) — Pylance reports methods as SymbolKind.Method
+            if ((sym.kind === vscode.SymbolKind.Method || sym.kind === vscode.SymbolKind.Function) &&
+                inClass && config.targets.methods) {
                 eligibleSymbols.push({
                     kind: 'method',
                     name: sym.name,

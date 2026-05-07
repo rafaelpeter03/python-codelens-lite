@@ -1,9 +1,9 @@
 {
-  "name": "python-codelens-lite",
-  "displayName": "Python CodeLens Lite",
+  "name": "python-code-lens",
+  "displayName": "Python Code Lens",
   "icon": "icon.png",
   "description": "Lightweight, configurable CodeLens for Python (references, implementations, scoped imports).",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "categories": [
     "Programming Languages",
     "Other"
@@ -11,7 +11,10 @@
   "keywords": [
     "python",
     "codelens",
-    "references"
+    "code lens",
+    "references",
+    "peek references",
+    "pylance"
   ],
   "activationEvents": [
     "onLanguage:python"
@@ -25,10 +28,10 @@
   },
   "license": "MIT",
   "author": {
-    "name": "Rafael Peter",
+    "name": "RafaelPeter",
     "url": "https://github.com/rafaelpeter03"
   },
-  "publisher": "rafaelptr",
+  "publisher": "rpeter",
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
