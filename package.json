@@ -183,15 +183,14 @@
     }
   },
   "scripts": {
-    "_check": "tsc --noEmit",
-    "_lint": "eslint src",
-    "_test": "npm run _check && npm run _lint && node scripts/test-import-detector.mjs",
-    "_compile": "node esbuild.mjs",
-    "_prepublish": "npm run _test && npm run _compile -- --production",
+    "check": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "npm run check && npm run lint && node scripts/test-import-detector.mjs",
+    "compile": "node esbuild.mjs",
+    "prepublish": "npm run test && npm run compile -- --production",
     "watch": "node esbuild.mjs --watch",
     "package": "vsce package",
-    "publish": "npm run _prepublish && vsce publish patch",
-    "commit": "commit"
+    "publish": "npm run prepublish && vsce publish patch"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
