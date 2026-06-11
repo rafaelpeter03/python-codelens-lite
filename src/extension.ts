@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
         { language: 'python', scheme: 'file' },
         provider
     );
-    context.subscriptions.push(codeLensProvider);
+    context.subscriptions.push(codeLensProvider, provider);
 
     // Register Commands
     context.subscriptions.push(
@@ -71,6 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
                 clearTimeout(timer);
                 debouncers.delete(key);
             }
+            invalidateConfigCache(doc.uri);
         })
     );
 

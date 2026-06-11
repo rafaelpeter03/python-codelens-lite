@@ -3,6 +3,7 @@
 .git/**
 out/**
 node_modules/**
+playground/**
 src/**
 .gitignore
 .DS_Store

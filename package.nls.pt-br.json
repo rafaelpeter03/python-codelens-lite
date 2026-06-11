@@ -3,6 +3,7 @@
   "command.refresh.title": "Python CodeLens Lite: Atualizar Lentes",
   "config.title": "Python CodeLens Lite",
   "config.enable.description": "Ativa ou desativa todos os recursos de CodeLens desta extensão.",
+  "config.files.includeInitPy.description": "Inclui arquivos __init__.py ao exibir CodeLens e contar referências.",
   "config.targets.classes.description": "Exibe CodeLens para definições de 'class'.",
   "config.targets.methods.description": "Exibe CodeLens para métodos (funções dentro de classes).",
   "config.targets.functions.description": "Exibe CodeLens para funções de nível de módulo.",
@@ -19,6 +20,6 @@
   "config.lenses.showImplementations.description": "Exibe uma lente adicional de 'N implementações' especificamente para classes Python.",
   "config.clickAction.description": "Comportamento ao clicar no CodeLens. 'peek' abre um painel inline; 'reveal' abre o painel de referências.",
   "config.performance.debounceMs.description": "Tempo de espera em milissegundos antes de atualizar os CodeLenses após digitação.",
-  "config.performance.maxFileSizeKB.description": "Ignora arquivos Python maiores que este tamanho (em KB) ao calcular CodeLenses.",
+  "config.performance.maxFileSizeKB.description": "Ignora arquivos Python maiores que este tamanho (em KB) ao calcular CodeLenses. Use 0 para desativar esse limite.",
   "config.exclude.description": "Padrões glob indicando arquivos onde o cálculo de CodeLens deve ser ignorado."
 }

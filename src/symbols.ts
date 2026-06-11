@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { ResolvedConfig } from './config';
+import { isImportCategoryEnabled, ResolvedConfig } from './config';
+import { Category, classifyUri } from './classifier';
 import { isLineAnImport } from './importDetector';
 
 export interface EligibleSymbol {
@@ -8,6 +9,7 @@ export interface EligibleSymbol {
     range: vscode.Range;
     selectionRange: vscode.Range;
     symbol: vscode.DocumentSymbol;
+    importCategory?: Category;
 }
 
 export async function getEligibleSymbols(
@@ -24,24 +26,30 @@ export async function getEligibleSymbols(
     }
 
     const eligibleSymbols: EligibleSymbol[] = [];
+    const importsEnabled = config.targets.imports.global ||
+        config.targets.imports.project ||
+        config.targets.imports.stdlib ||
+        config.targets.imports.venv;
 
-    function traverse(syms: vscode.DocumentSymbol[], isTopLevel: boolean, inClass: boolean) {
+    async function traverse(syms: vscode.DocumentSymbol[], isTopLevel: boolean, inClass: boolean): Promise<void> {
         for (const sym of syms) {
-            // Imports (detected via line text) — catches all symbol kinds on import lines
             if (isTopLevel && isLineAnImport(document, sym.range.start.line)) {
-                if (config.targets.imports.global || config.targets.imports.project || config.targets.imports.stdlib || config.targets.imports.venv) {
-                    eligibleSymbols.push({
-                        kind: 'import',
-                        name: sym.name,
-                        range: sym.range,
-                        selectionRange: sym.selectionRange,
-                        symbol: sym
-                    });
+                if (importsEnabled) {
+                    const importCategory = await resolveImportCategory(document.uri, sym.selectionRange.start);
+                    if (isImportCategoryEnabled(importCategory, config)) {
+                        eligibleSymbols.push({
+                            kind: 'import',
+                            name: sym.name,
+                            range: sym.range,
+                            selectionRange: sym.selectionRange,
+                            symbol: sym,
+                            importCategory
+                        });
+                    }
                 }
-                continue; // Do not traverse children of imports
+                continue;
             }
 
-            // Classes
             if (sym.kind === vscode.SymbolKind.Class && config.targets.classes) {
                 eligibleSymbols.push({
                     kind: 'class',
@@ -52,7 +60,6 @@ export async function getEligibleSymbols(
                 });
             }
 
-            // Methods (Functions/Methods in Class) — Pylance reports methods as SymbolKind.Method
             if ((sym.kind === vscode.SymbolKind.Method || sym.kind === vscode.SymbolKind.Function) &&
                 inClass && config.targets.methods) {
                 eligibleSymbols.push({
@@ -64,7 +71,6 @@ export async function getEligibleSymbols(
                 });
             }
 
-            // Top-level Functions
             if (sym.kind === vscode.SymbolKind.Function && !inClass && isTopLevel && config.targets.functions) {
                 eligibleSymbols.push({
                     kind: 'function',
@@ -75,7 +81,6 @@ export async function getEligibleSymbols(
                 });
             }
 
-            // Top-level variables
             if ((sym.kind === vscode.SymbolKind.Variable || sym.kind === vscode.SymbolKind.Constant) &&
                 isTopLevel && config.targets.moduleVariables) {
                 eligibleSymbols.push({
@@ -88,12 +93,31 @@ export async function getEligibleSymbols(
             }
 
             if (sym.children && sym.children.length > 0) {
-                traverse(sym.children, false, sym.kind === vscode.SymbolKind.Class || inClass);
+                await traverse(sym.children, false, sym.kind === vscode.SymbolKind.Class || inClass);
             }
         }
     }
 
-    traverse(symbols, true, false);
+    await traverse(symbols, true, false);
 
     return eligibleSymbols;
+}
+
+async function resolveImportCategory(uri: vscode.Uri, position: vscode.Position): Promise<Category> {
+    try {
+        const definitions = await vscode.commands.executeCommand<Array<vscode.Location | vscode.LocationLink>>(
+            'vscode.executeDefinitionProvider',
+            uri,
+            position
+        ) || [];
+
+        const definition = definitions[0];
+        if (!definition) {
+            return 'global';
+        }
+
+        return classifyUri('targetUri' in definition ? definition.targetUri : definition.uri);
+    } catch {
+        return 'global';
+    }
 }

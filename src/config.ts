@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
+import type { Category } from './classifier';
 
 export interface ResolvedConfig {
     enable: boolean;
+    files: {
+        includeInitPy: boolean;
+    };
     targets: {
         classes: boolean;
         methods: boolean;
@@ -43,6 +47,9 @@ export function getConfig(uri?: vscode.Uri): ResolvedConfig {
     const config = vscode.workspace.getConfiguration('pythonCodeLensLite', uri);
     const resolved: ResolvedConfig = {
         enable: config.get<boolean>('enable', true),
+        files: {
+            includeInitPy: config.get<boolean>('files.includeInitPy', true),
+        },
         targets: {
             classes: config.get<boolean>('targets.classes', true),
             methods: config.get<boolean>('targets.methods', true),
@@ -82,6 +89,24 @@ export function getConfig(uri?: vscode.Uri): ResolvedConfig {
     return resolved;
 }
 
-export function invalidateConfigCache() {
+export function invalidateConfigCache(uri?: vscode.Uri) {
+    if (uri) {
+        configCache.delete(uri.toString());
+        return;
+    }
+
     configCache.clear();
+}
+
+export function isImportCategoryEnabled(category: Category, config: ResolvedConfig): boolean {
+    switch (category) {
+        case 'project':
+            return config.targets.imports.project;
+        case 'venv':
+            return config.targets.imports.venv;
+        case 'stdlib':
+            return config.targets.imports.stdlib;
+        case 'global':
+            return config.targets.imports.global;
+    }
 }

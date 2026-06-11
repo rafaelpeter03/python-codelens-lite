@@ -3,6 +3,7 @@
   "command.refresh.title": "Python CodeLens Lite: Refresh Lenses",
   "config.title": "Python CodeLens Lite",
   "config.enable.description": "Enable or disable all CodeLens features provided by this extension.",
+  "config.files.includeInitPy.description": "Include __init__.py files when showing CodeLens and counting references.",
   "config.targets.classes.description": "Show CodeLens for 'class' definitions.",
   "config.targets.methods.description": "Show CodeLens for methods (functions inside classes).",
   "config.targets.functions.description": "Show CodeLens for top-level functions.",
@@ -19,6 +20,6 @@
   "config.lenses.showImplementations.description": "Show an additional 'N implementations' lens specifically for Python classes.",
   "config.clickAction.description": "Behavior when clicking the CodeLens. 'peek' opens an inline peek view; 'reveal' opens the references panel.",
   "config.performance.debounceMs.description": "Delay in milliseconds to wait before updating CodeLenses after typing.",
-  "config.performance.maxFileSizeKB.description": "Skip emitting CodeLens in Python files exceeding this size (in KB).",
+  "config.performance.maxFileSizeKB.description": "Skip emitting CodeLens in Python files exceeding this size (in KB). Use 0 to disable the size guard.",
   "config.exclude.description": "Glob patterns indicating files where CodeLens should skip calculation."
 }

@@ -3,16 +3,28 @@ import { getConfig } from './config';
 import { getEligibleSymbols, EligibleSymbol } from './symbols';
 import { applyFilters } from './filters';
 import { isExcluded } from './pathMatcher';
+import { isDocumentOverSizeLimit, isInitPy } from './pythonFiles';
+
+class SymbolCodeLens extends vscode.CodeLens {
+    constructor(
+        range: vscode.Range,
+        public readonly documentUri: vscode.Uri,
+        public readonly symbol: EligibleSymbol
+    ) {
+        super(range);
+    }
+}
 
 export class PythonCodeLensProvider implements vscode.CodeLensProvider {
     private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
-    private symbolCache = new Map<vscode.CodeLens, EligibleSymbol>();
-
-    constructor() { }
 
     public refresh() {
         this._onDidChangeCodeLenses.fire();
+    }
+
+    public dispose() {
+        this._onDidChangeCodeLenses.dispose();
     }
 
     public async provideCodeLenses(
@@ -25,13 +37,14 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             return [];
         }
 
-        // Limit checking for extremely large files
-        const fileSizeInKB = document.getText().length / 1024;
-        if (fileSizeInKB > config.performance.maxFileSizeKB) {
+        if (!config.files.includeInitPy && isInitPy(document.uri)) {
             return [];
         }
 
-        // Apply exclusionary glob rules (local matching — no workspace I/O)
+        if (await isDocumentOverSizeLimit(document, config.performance.maxFileSizeKB)) {
+            return [];
+        }
+
         if (isExcluded(document.uri, config.exclude)) {
             return [];
         }
@@ -40,19 +53,16 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         if (token.isCancellationRequested) { return []; }
 
         const lenses: vscode.CodeLens[] = [];
-        this.symbolCache.clear();
 
         for (const sym of eligibleSymbols) {
-            // Main reference lens
-            const refLens = new vscode.CodeLens(sym.range);
-            this.symbolCache.set(refLens, { ...sym, kind: sym.kind }); // Kind preserved for references
-            lenses.push(refLens);
+            lenses.push(new SymbolCodeLens(sym.range, document.uri, sym));
 
-            // Implementations lens (only for classes)
             if (config.lenses.showImplementations && sym.kind === 'class') {
-                const implLens = new vscode.CodeLens(sym.range);
-                this.symbolCache.set(implLens, { ...sym, kind: 'class-impl' });
-                lenses.push(implLens);
+                lenses.push(new SymbolCodeLens(
+                    sym.range,
+                    document.uri,
+                    { ...sym, kind: 'class-impl' }
+                ));
             }
         }
 
@@ -63,17 +73,19 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         codeLens: vscode.CodeLens,
         token: vscode.CancellationToken
     ): Promise<vscode.CodeLens | null> {
-        const sym = this.symbolCache.get(codeLens);
-        if (!sym) {
+        if (!(codeLens instanceof SymbolCodeLens)) {
             return null;
         }
 
-        const uri = vscode.window.activeTextEditor?.document.uri;
-        if (!uri) { return null; }
+        const { documentUri, symbol: sym } = codeLens;
+        const config = getConfig(documentUri);
+        if (!config.enable || (!config.files.includeInitPy && isInitPy(documentUri))) {
+            return null;
+        }
 
-        const config = getConfig(uri);
-        const document = vscode.window.activeTextEditor?.document;
-        if (!document) { return null; }
+        const document = vscode.workspace.textDocuments.find(
+            doc => doc.uri.toString() === documentUri.toString()
+        ) ?? await vscode.workspace.openTextDocument(documentUri);
 
         let locations: vscode.Location[] = [];
         const docCache = new Map<string, vscode.TextDocument>();
@@ -83,10 +95,14 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             if (sym.kind === 'class-impl') {
                 const allRefs = await vscode.commands.executeCommand<vscode.Location[]>(
                     'vscode.executeReferenceProvider',
-                    uri,
+                    documentUri,
                     sym.selectionRange.start
                 ) || [];
                 for (const loc of allRefs) {
+                    if (!config.files.includeInitPy && isInitPy(loc.uri)) {
+                        continue;
+                    }
+
                     try {
                         const key = loc.uri.toString();
                         let locDoc = docCache.get(key);
@@ -105,7 +121,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
             } else {
                 locations = await vscode.commands.executeCommand<vscode.Location[]>(
                     'vscode.executeReferenceProvider',
-                    uri,
+                    documentUri,
                     sym.selectionRange.start
                 ) || [];
             }
@@ -134,7 +150,7 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         codeLens.command = {
             title: title,
             command: count > 0 ? clickCommand : "",
-            arguments: count > 0 ? [uri, sym.selectionRange.start, filteredLocations] : []
+            arguments: count > 0 ? [documentUri, sym.selectionRange.start, filteredLocations] : []
         };
 
         if (config.clickAction === 'peek' && count > 0) {
