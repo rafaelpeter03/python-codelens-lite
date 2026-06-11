@@ -185,12 +185,18 @@
   "scripts": {
     "check": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "npm run check && npm run lint && node scripts/test-import-detector.mjs",
+    "test:imports": "node scripts/test-import-detector.mjs",
+    "verify": "npm run check && npm run lint && npm run test:imports",
+    "test": "npm run verify",
+    "precommit": "npm run verify",
+    "prepush": "npm run verify",
     "compile": "node esbuild.mjs",
     "prepublish": "npm run test && npm run compile -- --production",
     "watch": "node esbuild.mjs --watch",
     "package": "vsce package",
-    "publish": "npm run prepublish && vsce publish patch"
+    "publish": "npm run prepublish && vsce publish patch",
+    "release": "git push && npm run publish",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
