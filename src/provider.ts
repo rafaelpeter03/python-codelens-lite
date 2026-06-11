@@ -4,6 +4,7 @@ import { getEligibleSymbols, EligibleSymbol } from './symbols';
 import { applyFilters } from './filters';
 import { isExcluded } from './pathMatcher';
 import { isDocumentOverSizeLimit, isInitPy } from './pythonFiles';
+import { getLocationCommand } from './locationCommand';
 
 class SymbolCodeLens extends vscode.CodeLens {
     constructor(
@@ -144,18 +145,15 @@ export class PythonCodeLensProvider implements vscode.CodeLensProvider {
         const title = sym.kind === 'class-impl'
             ? `${count} ${count === 1 ? 'implementation' : 'implementations'}`
             : `${count} ${count === 1 ? 'reference' : 'references'}`;
-
-        const clickCommand = config.clickAction === 'reveal' ? 'editor.action.showReferences' : 'editor.action.peekLocations';
+        const locationCommand = getLocationCommand(config.clickAction);
 
         codeLens.command = {
             title: title,
-            command: count > 0 ? clickCommand : "",
-            arguments: count > 0 ? [documentUri, sym.selectionRange.start, filteredLocations] : []
+            command: count > 0 ? locationCommand.command : "",
+            arguments: count > 0
+                ? [documentUri, sym.selectionRange.start, filteredLocations, locationCommand.mode]
+                : []
         };
-
-        if (config.clickAction === 'peek' && count > 0) {
-            codeLens.command.arguments?.push('peek');
-        }
 
         return codeLens;
     }

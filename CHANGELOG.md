@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.1.3]
+- Fixed: `pythonCodeLensLite.clickAction` set to `reveal` now navigates to a matching reference instead of opening the same peek-style references UI.
+- Fixed: `pythonCodeLensLite.references.filterImports` now also filters import-target CodeLens results and recognizes multiline Python import statements.
+
 ## [0.1.2]
 - Added: `pythonCodeLensLite.files.includeInitPy` controls whether `__init__.py` files show CodeLens and contribute to reference counts.
 - Improved: CodeLens resolution now uses the lens document instead of the active editor, which is safer with multiple open Python files.

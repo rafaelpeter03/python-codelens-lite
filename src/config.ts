@@ -74,12 +74,11 @@ export function getConfig(uri?: vscode.Uri): ResolvedConfig {
         },
         clickAction: config.get<'peek' | 'reveal'>('clickAction', 'peek'),
         performance: {
-            debounceMs: Math.max(0, config.get<number>('performance.debounceMs', 250)),
-            maxFileSizeKB: Math.max(0, config.get<number>('performance.maxFileSizeKB', 512)),
+            debounceMs: Math.max(0, config.get<number>('performance.debounceMs', 200)),
+            maxFileSizeKB: Math.max(0, config.get<number>('performance.maxFileSizeKB', 10240)),
         },
         exclude: config.get<string[]>('exclude', [
             '**/.venv/**',
-            '**/venv/**',
             '**/site-packages/**',
             '**/__pycache__/**'
         ])

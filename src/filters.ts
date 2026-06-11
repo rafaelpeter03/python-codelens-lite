@@ -3,6 +3,7 @@ import { EligibleSymbol } from './symbols';
 import { isImportCategoryEnabled, ResolvedConfig } from './config';
 import { classifyLocation } from './classifier';
 import { isInitPy } from './pythonFiles';
+import { isLineAnImport } from './importDetector';
 
 export async function applyFilters(
     locations: vscode.Location[],
@@ -36,7 +37,7 @@ export async function applyFilters(
 
         let isLocImport = false;
 
-        if (config.references.filterImports || symbol.kind === 'import') {
+        if (config.references.filterImports) {
             try {
                 const key = loc.uri.toString();
                 let locDoc = docCache.get(key);
@@ -44,14 +45,13 @@ export async function applyFilters(
                     locDoc = await vscode.workspace.openTextDocument(loc.uri);
                     docCache.set(key, locDoc);
                 }
-                const lineText = locDoc.lineAt(loc.range.start.line).text;
-                isLocImport = /^\s*(import|from)\s/.test(lineText);
+                isLocImport = isLineAnImport(locDoc, loc.range.start.line);
             } catch {
                 // Ignore locations that cannot be opened.
             }
         }
 
-        if (config.references.filterImports && isLocImport && symbol.kind !== 'import') {
+        if (config.references.filterImports && isLocImport) {
             continue;
         }
 

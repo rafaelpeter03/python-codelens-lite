@@ -1,0 +1,2 @@
+- [x] click action only works with peek, the option to use reveal has no effect
+- [x] Filter Imports does not work, even when unchecking the option, references still appear when doing import from '...'

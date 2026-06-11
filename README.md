@@ -14,7 +14,7 @@
 - **Implementation counts** for classes (how many subclasses inherit from them).
 - **Scoped import lenses** with fine-grained classification: project, venv, stdlib, or global.
 - **Smart filtering** — exclude import statements, the definition itself, or self-references from the count.
-- **Click action** — open an inline peek view or the full references panel.
+- **Click action** — open an inline peek view or jump to a matching reference.
 - **Per-resource configuration** — different settings per workspace folder or file.
 - **Performance guards** — configurable debounce delay and file-size limit.
 - **Localized UI** — settings descriptions and command titles are shown in **English** or **Brazilian Portuguese** automatically based on your VS Code display language.
@@ -63,7 +63,7 @@ All settings support `resource` scope (per-folder or per-file overrides via `.vs
 |---|---|---|
 | `pythonCodeLensLite.enable` | `true` | Enable or disable the extension. |
 | `pythonCodeLensLite.files.includeInitPy` | `true` | Include `__init__.py` files when showing CodeLens and counting references. |
-| `pythonCodeLensLite.clickAction` | `"peek"` | `"peek"` opens an inline peek view; `"reveal"` opens the references panel. |
+| `pythonCodeLensLite.clickAction` | `"peek"` | `"peek"` opens an inline peek view; `"reveal"` jumps to a matching reference in the editor. |
 
 ### Targets — which symbols get a lens
 
