@@ -188,7 +188,8 @@
     "compile": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
     "package": "vsce package",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "publish": "vsce publish patch"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
