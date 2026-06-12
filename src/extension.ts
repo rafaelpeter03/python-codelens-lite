@@ -8,7 +8,7 @@ const debouncers = new Map<string, NodeJS.Timeout>();
 export function activate(context: vscode.ExtensionContext) {
     const provider = new PythonCodeLensProvider();
 
-    // Register CodeLens standard provider for python text files
+    // Register CodeLens provider for python text files
     const codeLensProvider = vscode.languages.registerCodeLensProvider(
         { language: 'python', scheme: 'file' },
         provider
@@ -56,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
             const timer = setTimeout(() => {
                 debouncers.delete(key);
-                provider.refresh();
+                provider.refreshAfterDocumentChange(e.document.uri);
             }, config.performance.debounceMs);
             debouncers.set(key, timer);
         })
@@ -71,6 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
                 clearTimeout(timer);
                 debouncers.delete(key);
             }
+            provider.invalidate(doc.uri);
             invalidateConfigCache(doc.uri);
         })
     );

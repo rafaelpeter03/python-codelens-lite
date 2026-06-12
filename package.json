@@ -2,7 +2,7 @@
   "name": "python-codelens",
   "displayName": "Python Code Lens - Lite",
   "icon": "icon.png",
-  "description": "Lightweight, configurable CodeLens for Python (references, implementations, scoped imports).",
+  "description": "Lightweight, optimized CodeLens for Python references, implementations, and scoped imports.",
   "version": "0.1.4",
   "categories": [
     "Programming Languages",

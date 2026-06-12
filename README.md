@@ -16,7 +16,7 @@
 - **Smart filtering** — exclude import statements, the definition itself, or self-references from the count.
 - **Click action** — open an inline peek view or jump to a matching reference.
 - **Per-resource configuration** — different settings per workspace folder or file.
-- **Performance guards** — configurable debounce delay and file-size limit.
+- **Performance guards** — shared symbol/reference caching, configurable debounce delay, targeted symbol invalidation, and file-size limit.
 - **Localized UI** — settings descriptions and command titles are shown in **English** or **Brazilian Portuguese** automatically based on your VS Code display language.
 
 ---
@@ -98,8 +98,8 @@ All settings support `resource` scope (per-folder or per-file overrides via `.vs
 
 | Setting | Default | Description |
 |---|---|---|
-| `pythonCodeLensLite.performance.debounceMs` | `250` | Milliseconds to wait after typing before refreshing. |
-| `pythonCodeLensLite.performance.maxFileSizeKB` | `512` | Skip files larger than this size (in KB). Use `0` to disable this guard. |
+| `pythonCodeLensLite.performance.debounceMs` | `200` | Milliseconds to wait after typing before refreshing. |
+| `pythonCodeLensLite.performance.maxFileSizeKB` | `10240` | Skip files larger than this size (in KB). Use `0` to disable this guard. |
 
 ### Exclusions
 
@@ -164,9 +164,10 @@ To change your VS Code display language: `Configure Display Language` in the Com
 
 1. On activation, a `CodeLensProvider` is registered for all Python (`file` scheme) documents.
 2. `provideCodeLenses` uses VS Code's `DocumentSymbolProvider` to list eligible symbols, then emits placeholder lenses.
-3. `resolveCodeLens` calls `vscode.executeReferenceProvider` for each symbol, applies the configured filters, and sets the final label and click command.
-4. Configuration is cached per URI and invalidated whenever settings change or workspace folders are added/removed.
-5. Document edits are debounced to avoid redundant work while typing.
+3. Symbol discovery is cached per document version, so repeated CodeLens passes do not re-read the same symbol tree.
+4. `resolveCodeLens` calls `vscode.executeReferenceProvider`, caches raw references per symbol position, filters results, and reuses the filtered result for repeated resolutions.
+5. Configuration is cached per URI and invalidated whenever settings change or workspace folders are added/removed.
+6. Document edits are debounced, invalidate only the edited document's symbol cache, and clear reference caches globally so counts stay consistent across files.
 
 ---
 

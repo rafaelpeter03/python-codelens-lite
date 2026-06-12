@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.1.4]
+- Improved: CodeLens resolution now caches document symbols, raw references, and filtered reference results per document version.
+- Improved: class reference and implementation lenses share the same raw reference-provider result instead of asking Pylance twice for the same position.
+- Improved: document edits now invalidate only the edited Python document's symbol cache while clearing reference caches globally, preserving cross-file count consistency after the debounce delay.
+
 ## [0.1.3]
 - Fixed: `pythonCodeLensLite.clickAction` set to `reveal` now navigates to a matching reference instead of opening the same peek-style references UI.
 - Fixed: `pythonCodeLensLite.references.filterImports` now also filters import-target CodeLens results and recognizes multiline Python import statements.
