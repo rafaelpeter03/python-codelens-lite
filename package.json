@@ -3,7 +3,7 @@
   "displayName": "Python Code Lens - Lite",
   "icon": "icon.png",
   "description": "Lightweight, optimized CodeLens for Python references, implementations, and scoped imports.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "categories": [
     "Programming Languages",
     "Other"
